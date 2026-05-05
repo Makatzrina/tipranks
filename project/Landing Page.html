@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440" />
+<title>Ledgerline — Research-grade investing for everyone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg: oklch(97.8% 0.008 80);
+    --bg-2: oklch(94.5% 0.012 80);
+    --paper: oklch(99% 0.005 80);
+    --ink: oklch(18% 0.01 250);
+    --ink-2: oklch(36% 0.01 250);
+    --ink-3: oklch(56% 0.012 250);
+    --rule: oklch(88% 0.008 80);
+    --rule-2: oklch(82% 0.01 80);
+    --accent: oklch(52% 0.13 145);
+    --accent-2: oklch(58% 0.18 28);
+    --tint: oklch(94% 0.03 145);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:'Inter Tight',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none;cursor:pointer}
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+  .serif{font-family:'Instrument Serif',serif;font-weight:400}
+  .wrap{max-width:1320px;margin:0 auto;padding:0 40px}
+
+  /* utility ticker */
+  .util{border-bottom:1px solid var(--rule);background:var(--paper)}
+  .util-inner{display:flex;align-items:center;height:38px;overflow:hidden}
+  .ticker{flex:1;display:flex;gap:48px;align-items:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-2);white-space:nowrap;animation:slide 80s linear infinite}
+  .ticker .pip{display:inline-flex;gap:10px;align-items:baseline}
+  .ticker .sym{color:var(--ink);font-weight:500}
+  .ticker .up{color:var(--accent)}
+  .ticker .dn{color:var(--accent-2)}
+  .util-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-3);padding-left:24px;border-left:1px solid var(--rule);margin-left:24px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+  @keyframes slide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  .pulse{width:7px;height:7px;border-radius:50%;background:var(--accent);display:inline-block;vertical-align:middle;margin-right:8px;animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 oklch(52% 0.13 145 / .55)}70%{box-shadow:0 0 0 10px oklch(52% 0.13 145 / 0)}100%{box-shadow:0 0 0 0 oklch(52% 0.13 145 / 0)}}
+
+  /* nav */
+  .nav{border-bottom:1px solid var(--rule);background:var(--bg);position:sticky;top:0;z-index:30;backdrop-filter:blur(8px)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:72px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:18px;letter-spacing:-.01em}
+  .brand-mark{width:22px;height:22px}
+  .brand-mark svg{width:100%;height:100%;display:block}
+  .nav-links{display:flex;gap:32px;font-size:14px;color:var(--ink-2);font-weight:500}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-cta{display:flex;align-items:center;gap:14px}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;font-size:14px;font-weight:500;border:1px solid transparent;cursor:pointer;transition:.15s;white-space:nowrap}
+  .btn-ghost{color:var(--ink);border-color:var(--rule-2);background:transparent}
+  .btn-ghost:hover{background:var(--paper)}
+  .btn-solid{background:var(--ink);color:var(--bg)}
+  .btn-solid:hover{background:var(--ink-2)}
+  .btn-arrow{font-family:'JetBrains Mono',monospace;font-size:11px;opacity:.7}
+
+  /* hero */
+  .hero{padding:110px 0 90px;border-bottom:1px solid var(--rule);position:relative}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:80px;align-items:end}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);display:inline-flex;align-items:center;gap:14px;margin-bottom:36px}
+  .eyebrow::before{content:"";width:24px;height:1px;background:var(--ink-3)}
+  h1.lede{font-family:'Instrument Serif',serif;font-weight:400;font-size:104px;line-height:.96;letter-spacing:-.025em}
+  h1.lede em{font-style:italic;color:var(--accent)}
+  .lede-sub{font-size:19px;line-height:1.55;color:var(--ink-2);max-width:520px;margin-top:32px}
+  .hero-actions{display:flex;align-items:center;gap:18px;margin-top:40px;flex-wrap:wrap}
+  .hero-actions .btn{padding:14px 22px;font-size:15px}
+  .hero-actions .meta{font-size:13px;color:var(--ink-3)}
+
+  /* hero data card */
+  .card{background:var(--paper);border:1px solid var(--rule);border-radius:14px;overflow:hidden}
+  .quote-head{display:flex;justify-content:space-between;align-items:flex-start;padding:24px 26px 14px;border-bottom:1px solid var(--rule)}
+  .quote-sym{display:flex;align-items:baseline;gap:14px}
+  .quote-sym .t{font-size:22px;font-weight:600;letter-spacing:-.01em}
+  .quote-sym .n{font-size:13px;color:var(--ink-3)}
+  .quote-tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);background:var(--tint);padding:6px 10px;border-radius:6px}
+  .quote-price{padding:18px 26px 8px;display:flex;align-items:baseline;gap:14px}
+  .quote-price .p{font-family:'JetBrains Mono',monospace;font-size:42px;font-weight:500;letter-spacing:-.02em}
+  .quote-price .d{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--accent);font-weight:500}
+  .quote-chart{height:170px}
+  .quote-foot{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--rule)}
+  .qf{padding:14px 18px;border-right:1px solid var(--rule)}
+  .qf:last-child{border-right:none}
+  .qf .l{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+  .qf .v{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500}
+  .verdict{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;padding:16px 26px;background:var(--bg-2);border-top:1px solid var(--rule)}
+  .verdict-dial{width:54px;height:54px;border-radius:50%;background:conic-gradient(var(--accent) 0 78%, var(--rule) 78% 100%);display:grid;place-items:center;position:relative}
+  .verdict-dial::after{content:"";position:absolute;inset:6px;background:var(--paper);border-radius:50%}
+  .verdict-dial span{position:relative;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--accent)}
+  .verdict-text .lab{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:3px}
+  .verdict-text .v{font-size:15px;font-weight:600}
+  .verdict-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-3);text-align:right;line-height:1.5}
+
+  .chip{position:absolute;background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:12px;box-shadow:0 4px 24px -8px rgba(20,20,40,.1);z-index:2}
+  .chip .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+  .chip .dn{background:var(--accent-2)}
+  .chip-1{top:-18px;left:-22px}
+  .chip-2{bottom:24px;right:-30px}
+  .chip-lab{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-3);letter-spacing:.1em;text-transform:uppercase}
+  .chip-val{font-weight:600;font-size:13px}
+
+  /* logo strip */
+  .strip{padding:36px 0;border-bottom:1px solid var(--rule)}
+  .strip-inner{display:flex;align-items:center;gap:48px;justify-content:space-between;flex-wrap:wrap}
+  .strip-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+  .strip-logos{display:flex;gap:48px;align-items:center;color:var(--ink-2);font-weight:600;font-size:18px;letter-spacing:-.01em;opacity:.75;flex-wrap:wrap}
+
+  /* sections */
+  section.s{padding:130px 0;border-bottom:1px solid var(--rule)}
+  .sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:60px;margin-bottom:64px}
+  .sec-head h2{font-family:'Instrument Serif',serif;font-weight:400;font-size:72px;line-height:1;letter-spacing:-.02em;max-width:760px}
+  .sec-head h2 em{font-style:italic;color:var(--accent)}
+  .sec-head .sec-meta{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);text-align:right;line-height:1.7;min-width:200px}
+  .sec-kicker{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:18px}
+
+  /* tools */
+  .tools{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
+  .tool{grid-column:span 4;background:var(--paper);border:1px solid var(--rule);border-radius:14px;padding:28px;display:flex;flex-direction:column;gap:18px;min-height:340px}
+  .tool.span6{grid-column:span 6}
+  .tool .num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-3);letter-spacing:.1em}
+  .tool h3{font-size:22px;letter-spacing:-.01em;font-weight:600;line-height:1.2}
+  .tool p{font-size:14px;color:var(--ink-2);line-height:1.55}
+  .tool .vis{margin-top:auto;border:1px solid var(--rule);border-radius:8px;background:var(--bg-2);overflow:hidden}
+  .row{display:flex;gap:14px;align-items:center;justify-content:space-between}
+
+  .rrow{display:grid;grid-template-columns:90px 1fr 60px;gap:14px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--rule)}
+  .rrow:last-child{border-bottom:none}
+  .rrow .nm{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-2)}
+  .rrow .bar{height:6px;border-radius:3px;background:var(--rule);overflow:hidden}
+  .rrow .bar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+  .rrow .bar i.alt{background:var(--ink-2)}
+  .rrow .pct{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;text-align:right}
+
+  .portbars{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;height:140px;padding:18px}
+  .portbars .b{flex:1;background:var(--ink);border-radius:3px 3px 0 0;opacity:.85}
+  .portbars .b.up{background:var(--accent)}
+  .portbars .b.dn{background:var(--accent-2);opacity:.55}
+
+  .feed-item{display:grid;grid-template-columns:50px 1fr auto;gap:14px;padding:14px 18px;border-bottom:1px solid var(--rule);align-items:center}
+  .feed-item:last-child{border-bottom:none}
+  .feed-item .t{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-3);letter-spacing:.04em}
+  .feed-item .h{font-size:13px;line-height:1.4;font-weight:500}
+  .feed-item .tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);background:var(--tint);padding:3px 7px;border-radius:4px;letter-spacing:.06em}
+  .feed-item .tag.dn{color:var(--accent-2);background:oklch(94% 0.04 28)}
+
+  .screener{padding:18px}
+  .screener .sql{font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;color:var(--ink-2)}
+  .screener .sql .k{color:var(--accent);font-weight:600}
+  .screener .sql .s{color:var(--accent-2)}
+  .screener .results{margin-top:14px;padding-top:14px;border-top:1px dashed var(--rule);display:flex;flex-direction:column;gap:7px}
+  .sresult{display:grid;grid-template-columns:46px 1fr auto auto;gap:12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-2)}
+  .sresult .t{color:var(--ink);font-weight:600}
+  .sresult .g{color:var(--accent)}
+
+  /* split editorial */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+  .split .copy h3{font-family:'Instrument Serif',serif;font-size:56px;line-height:1.04;letter-spacing:-.02em;font-weight:400;margin-bottom:24px}
+  .split .copy h3 em{font-style:italic;color:var(--accent)}
+  .split .copy p{font-size:17px;line-height:1.6;color:var(--ink-2);margin-bottom:18px;max-width:480px}
+  .quote-block{font-family:'Instrument Serif',serif;font-style:italic;font-size:30px;line-height:1.3;margin:32px 0 18px;padding-left:22px;border-left:2px solid var(--accent)}
+  .qattr{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+
+  .verdict-card-head{padding:28px 32px;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;align-items:flex-start}
+  .vch-l{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+  .vch-r{text-align:right}
+  .vch-r .pct{font-family:'JetBrains Mono',monospace;font-size:32px;color:var(--accent);font-weight:500}
+  .verdict-evidence{display:grid;grid-template-columns:repeat(2,1fr)}
+  .ev{padding:22px 32px;border-bottom:1px solid var(--rule);border-right:1px solid var(--rule)}
+  .ev:nth-child(2n){border-right:none}
+  .ev:nth-last-child(-n+2){border-bottom:none}
+  .ev .l{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+  .ev .v{font-size:18px;font-weight:600;margin-bottom:4px}
+  .ev .d{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-3);line-height:1.5}
+
+  /* leaderboard */
+  .leader-head, .leader-row{display:grid;grid-template-columns:42px 50px 1fr 90px 110px 90px;gap:14px;padding:14px 22px;border-bottom:1px solid var(--rule);align-items:center}
+  .leader-head{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);background:var(--bg-2)}
+  .leader-row:last-child{border-bottom:none}
+  .lr-rank{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--ink-3);font-weight:500}
+  .lr-rank.top{color:var(--accent);font-weight:600}
+  .lr-pic{width:36px;height:36px;border-radius:50%;background:var(--bg-2);display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--ink-2);font-family:'Instrument Serif',serif;font-style:italic}
+  .lr-name .n{font-size:15px;font-weight:600}
+  .lr-name .f{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-3);margin-top:2px}
+  .lr-num{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500}
+  .lr-num.g{color:var(--accent)}
+  .lr-stars{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-2);letter-spacing:.04em}
+
+  /* dark band */
+  .band{padding:110px 0;background:var(--ink);color:var(--bg);border-bottom:1px solid var(--ink-2)}
+  .band h2{font-family:'Instrument Serif',serif;font-weight:400;font-size:72px;line-height:1.02;letter-spacing:-.02em;color:var(--bg);max-width:760px}
+  .band h2 em{font-style:italic;color:oklch(78% 0.13 145)}
+  .band .sec-head .sec-meta{color:oklch(70% 0.02 250)}
+  .band .sec-kicker{color:oklch(78% 0.13 145)}
+  .band-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--ink-2);margin-top:40px}
+  .stat{background:var(--ink);padding:36px 30px}
+  .stat .k{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:oklch(70% 0.02 250);margin-bottom:14px}
+  .stat .n{font-family:'Instrument Serif',serif;font-size:64px;letter-spacing:-.02em;line-height:1}
+  .stat .n em{font-style:italic;color:oklch(78% 0.13 145)}
+  .stat .d{font-size:13px;color:oklch(78% 0.02 250);margin-top:10px;line-height:1.5;max-width:240px}
+
+  /* steps */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .step{background:var(--paper);border:1px solid var(--rule);border-radius:14px;padding:34px;display:flex;flex-direction:column;gap:14px;min-height:280px}
+  .step .num{font-family:'Instrument Serif',serif;font-style:italic;font-size:48px;color:var(--accent);line-height:1}
+  .step h4{font-size:22px;font-weight:600;letter-spacing:-.01em}
+  .step p{font-size:14.5px;color:var(--ink-2);line-height:1.55}
+
+  /* pricing */
+  .price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:var(--rule);border:1px solid var(--rule);border-radius:14px;overflow:hidden}
+  .plan{background:var(--paper);padding:38px 32px;display:flex;flex-direction:column;gap:18px;position:relative}
+  .plan.featured{background:var(--ink);color:var(--bg)}
+  .pf-tag{position:absolute;top:18px;right:18px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:oklch(78% 0.13 145);border:1px solid oklch(40% 0.07 145);padding:4px 8px;border-radius:4px}
+  .plan h4{font-size:14px;font-family:'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+  .plan.featured h4{color:oklch(78% 0.13 145)}
+  .plan .pp{display:flex;align-items:baseline;gap:8px;margin-top:4px}
+  .plan .pp .a{font-family:'Instrument Serif',serif;font-size:64px;letter-spacing:-.02em;line-height:1}
+  .plan .pp .u{font-size:13px;color:var(--ink-3)}
+  .plan.featured .pp .u{color:oklch(78% 0.02 250)}
+  .plan .desc{font-size:14px;color:var(--ink-2);line-height:1.5}
+  .plan.featured .desc{color:oklch(82% 0.02 250)}
+  .plan ul{list-style:none;display:flex;flex-direction:column;gap:11px;margin-top:8px;border-top:1px solid var(--rule);padding-top:20px;font-size:13.5px;color:var(--ink-2)}
+  .plan.featured ul{border-color:var(--ink-2);color:oklch(82% 0.02 250)}
+  .plan ul li{display:flex;gap:10px;align-items:flex-start}
+  .plan ul li::before{content:"+";color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:12px;margin-top:2px}
+  .plan.featured ul li::before{color:oklch(78% 0.13 145)}
+  .plan .btn{margin-top:14px;justify-content:center;width:100%}
+  .plan.featured .btn-solid{background:oklch(78% 0.13 145);color:var(--ink)}
+  .plan.featured .btn-solid:hover{background:oklch(72% 0.13 145)}
+
+  /* testimonials */
+  .tst{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px}
+  .tst-card{background:var(--paper);border:1px solid var(--rule);border-radius:14px;padding:30px;display:flex;flex-direction:column;gap:20px;min-height:300px}
+  .tst-card blockquote{font-family:'Instrument Serif',serif;font-size:24px;line-height:1.3;letter-spacing:-.005em}
+  .tst-card .a{display:flex;align-items:center;gap:12px;margin-top:auto;padding-top:18px;border-top:1px solid var(--rule)}
+  .tst-card .a .av{width:38px;height:38px;border-radius:50%;background:var(--bg-2);display:grid;place-items:center;font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;color:var(--ink-2)}
+  .tst-card .a .nm{font-size:14px;font-weight:600;line-height:1.3}
+  .tst-card .a .ro{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+
+  /* faq */
+  .faq{display:grid;grid-template-columns:1fr 1.4fr;gap:80px;align-items:flex-start}
+  .faq-list{display:flex;flex-direction:column;border-top:1px solid var(--rule)}
+  .faq-item{padding:24px 0;border-bottom:1px solid var(--rule)}
+  .faq-item summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;font-size:20px;font-weight:500;letter-spacing:-.005em}
+  .faq-item summary::-webkit-details-marker{display:none}
+  .faq-item summary::after{content:"+";font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:24px;transition:.2s}
+  .faq-item[open] summary::after{transform:rotate(45deg)}
+  .faq-item p{margin-top:14px;font-size:15px;color:var(--ink-2);line-height:1.6;max-width:560px}
+
+  /* final cta */
+  .final{padding:140px 0 120px;text-align:center;position:relative}
+  .final h2{font-family:'Instrument Serif',serif;font-size:120px;line-height:.95;letter-spacing:-.025em;font-weight:400;max-width:1100px;margin:0 auto}
+  .final h2 em{font-style:italic;color:var(--accent)}
+  .final p{font-size:18px;color:var(--ink-2);margin:32px auto 0;max-width:560px;line-height:1.5}
+  .final .hero-actions{justify-content:center;margin-top:42px}
+
+  /* footer */
+  footer{border-top:1px solid var(--rule);background:var(--paper);padding:64px 0 36px}
+  .foot-grid{display:grid;grid-template-columns:1.5fr repeat(4,1fr);gap:48px;margin-bottom:54px}
+  .foot-brand-name{font-family:'Instrument Serif',serif;font-size:30px;letter-spacing:-.01em;margin-bottom:14px}
+  .foot-tag{font-size:14px;color:var(--ink-2);max-width:280px;line-height:1.5}
+  .foot-col h5{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:18px}
+  .foot-col ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+  .foot-col a{font-size:14px;color:var(--ink-2)}
+  .foot-col a:hover{color:var(--ink)}
+  .foot-base{display:flex;justify-content:space-between;align-items:center;padding-top:24px;border-top:1px solid var(--rule);font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-3);letter-spacing:.06em;flex-wrap:wrap;gap:14px}
+</style>
+</head>
+<body>
+
+<!-- ticker -->
+<div class="util">
+  <div class="wrap">
+    <div class="util-inner">
+      <div class="ticker">
+        <span class="pip"><span class="sym">S&amp;P 500</span> <span>5,742.18</span> <span class="up">+0.62%</span></span>
+        <span class="pip"><span class="sym">NASDAQ</span> <span>18,421.05</span> <span class="up">+0.94%</span></span>
+        <span class="pip"><span class="sym">DOW</span> <span>42,108.77</span> <span class="up">+0.18%</span></span>
+        <span class="pip"><span class="sym">RUSSELL 2K</span> <span>2,213.40</span> <span class="dn">-0.31%</span></span>
+        <span class="pip"><span class="sym">VIX</span> <span>14.62</span> <span class="dn">-2.14%</span></span>
+        <span class="pip"><span class="sym">GOLD</span> <span>2,484.10</span> <span class="up">+0.41%</span></span>
+        <span class="pip"><span class="sym">WTI</span> <span>71.83</span> <span class="dn">-0.86%</span></span>
+        <span class="pip"><span class="sym">10Y</span> <span>4.218%</span> <span class="up">+3 bps</span></span>
+        <span class="pip"><span class="sym">BTC</span> <span>72,418.50</span> <span class="up">+1.87%</span></span>
+        <span class="pip"><span class="sym">DXY</span> <span>104.18</span> <span class="dn">-0.12%</span></span>
+        <!-- duplicate -->
+        <span class="pip"><span class="sym">S&amp;P 500</span> <span>5,742.18</span> <span class="up">+0.62%</span></span>
+        <span class="pip"><span class="sym">NASDAQ</span> <span>18,421.05</span> <span class="up">+0.94%</span></span>
+        <span class="pip"><span class="sym">DOW</span> <span>42,108.77</span> <span class="up">+0.18%</span></span>
+        <span class="pip"><span class="sym">RUSSELL 2K</span> <span>2,213.40</span> <span class="dn">-0.31%</span></span>
+        <span class="pip"><span class="sym">VIX</span> <span>14.62</span> <span class="dn">-2.14%</span></span>
+        <span class="pip"><span class="sym">GOLD</span> <span>2,484.10</span> <span class="up">+0.41%</span></span>
+        <span class="pip"><span class="sym">WTI</span> <span>71.83</span> <span class="dn">-0.86%</span></span>
+        <span class="pip"><span class="sym">10Y</span> <span>4.218%</span> <span class="up">+3 bps</span></span>
+        <span class="pip"><span class="sym">BTC</span> <span>72,418.50</span> <span class="up">+1.87%</span></span>
+        <span class="pip"><span class="sym">DXY</span> <span>104.18</span> <span class="dn">-0.12%</span></span>
+      </div>
+      <div class="util-meta"><span class="pulse"></span>Markets open · 4h 16m to close</div>
+    </div>
+  </div>
+</div>
+
+<!-- nav -->
+<nav class="nav">
+  <div class="wrap">
+    <div class="nav-inner">
+      <div class="brand">
+        <span class="brand-mark">
+          <svg viewBox="0 0 22 22" fill="none">
+            <rect x="1" y="1" width="20" height="20" rx="4" stroke="currentColor" stroke-width="1.5"></rect>
+            <path d="M5 14 L9 9 L12 12 L17 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+            <circle cx="17" cy="6" r="1.6" fill="currentColor"></circle>
+          </svg>
+        </span>
+        Ledgerline
+      </div>
+      <div class="nav-links">
+        <a>Research</a>
+        <a>Screeners</a>
+        <a>Portfolio</a>
+        <a>Experts</a>
+        <a>Markets</a>
+        <a>Pricing</a>
+      </div>
+      <div class="nav-cta">
+        <a class="btn btn-ghost">Sign in</a>
+        <a class="btn btn-solid">Open free account <span class="btn-arrow">↗</span></a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- hero -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow">A research desk in your pocket · Issue 04.26</div>
+        <h1 class="lede">Invest with the<br/>same edge as the<br/><em>professionals</em>.</h1>
+        <p class="lede-sub">Ledgerline turns analyst reports, insider filings, and earnings transcripts into one clear verdict on every stock — so you can stop guessing and start deciding.</p>
+        <div class="hero-actions">
+          <a class="btn btn-solid">Start free for 14 days <span class="btn-arrow">→</span></a>
+          <a class="btn btn-ghost">▷&nbsp;&nbsp;Watch the 90-second tour</a>
+          <span class="meta">No card required</span>
+        </div>
+      </div>
+
+      <div style="position:relative">
+        <div class="card">
+          <div class="quote-head">
+            <div class="quote-sym">
+              <span class="t">NVDA</span>
+              <span class="n">NVIDIA Corp · Nasdaq</span>
+            </div>
+            <span class="quote-tag">Strong Buy</span>
+          </div>
+          <div class="quote-price">
+            <span class="p">$142.84</span>
+            <span class="d">+2.34 (+1.66%)</span>
+          </div>
+          <div class="quote-chart">
+            <svg viewBox="0 0 600 170" preserveAspectRatio="none" width="100%" height="100%">
+              <defs>
+                <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="oklch(52% 0.13 145)" stop-opacity=".22"></stop>
+                  <stop offset="100%" stop-color="oklch(52% 0.13 145)" stop-opacity="0"></stop>
+                </linearGradient>
+              </defs>
+              <g stroke="oklch(88% 0.008 80)" stroke-width="1" stroke-dasharray="2 4">
+                <line x1="0" y1="42" x2="600" y2="42"></line>
+                <line x1="0" y1="85" x2="600" y2="85"></line>
+                <line x1="0" y1="128" x2="600" y2="128"></line>
+              </g>
+              <path d="M0,120 L40,118 L80,108 L120,114 L160,98 L200,102 L240,86 L280,92 L320,72 L360,80 L400,58 L440,68 L480,46 L520,52 L560,30 L600,38 L600,170 L0,170 Z" fill="url(#grad)"></path>
+              <path d="M0,120 L40,118 L80,108 L120,114 L160,98 L200,102 L240,86 L280,92 L320,72 L360,80 L400,58 L440,68 L480,46 L520,52 L560,30 L600,38" fill="none" stroke="oklch(52% 0.13 145)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              <circle cx="560" cy="30" r="4" fill="oklch(52% 0.13 145)"></circle>
+              <circle cx="560" cy="30" r="9" fill="oklch(52% 0.13 145)" opacity=".15"></circle>
+              <line x1="320" y1="20" x2="320" y2="160" stroke="oklch(56% 0.012 250)" stroke-width="1" stroke-dasharray="3 3" opacity=".6"></line>
+              <text x="324" y="32" font-family="JetBrains Mono" font-size="9" fill="oklch(36% 0.01 250)">Q1 EPS · beat</text>
+            </svg>
+          </div>
+          <div class="quote-foot">
+            <div class="qf"><div class="l">Smart Score</div><div class="v" style="color:var(--accent)">9 / 10</div></div>
+            <div class="qf"><div class="l">Analyst PT</div><div class="v">$168.40</div></div>
+            <div class="qf"><div class="l">Upside</div><div class="v" style="color:var(--accent)">+17.9%</div></div>
+            <div class="qf"><div class="l">Insiders</div><div class="v">Bullish</div></div>
+          </div>
+          <div class="verdict">
+            <div class="verdict-dial"><span>78</span></div>
+            <div class="verdict-text">
+              <div class="lab">Ledgerline verdict</div>
+              <div class="v">28 of 36 analysts say buy</div>
+            </div>
+            <div class="verdict-meta">UPDATED 14:08 ET<br/>SOURCES · 36</div>
+          </div>
+        </div>
+
+        <div class="chip chip-1">
+          <span class="dot"></span>
+          <div>
+            <div class="chip-lab">Insider buy</div>
+            <div class="chip-val">Cook · $1.2M AAPL</div>
+          </div>
+        </div>
+        <div class="chip chip-2">
+          <span class="dot dn"></span>
+          <div>
+            <div class="chip-lab">Downgrade</div>
+            <div class="chip-val">MS cuts TSLA · Hold</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- logo strip -->
+<section class="strip">
+  <div class="wrap">
+    <div class="strip-inner">
+      <div class="strip-label">As referenced in</div>
+      <div class="strip-logos">
+        <span class="serif" style="font-style:italic">The Capital Times</span>
+        <span class="mono">MARKETBEAT</span>
+        <span style="font-family:'Instrument Serif',serif;font-size:22px">Quartile</span>
+        <span style="letter-spacing:.16em;font-weight:700">FINWEEK</span>
+        <span class="mono">benchpress.io</span>
+        <span style="font-family:'Instrument Serif',serif;font-style:italic;font-size:22px">Allocator</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- toolset -->
+<section class="s">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="sec-kicker">01 — The platform</div>
+        <h2>Every signal a serious investor needs, <em>on a single canvas.</em></h2>
+      </div>
+      <div class="sec-meta">
+        UPDATED CONTINUOUSLY<br/>
+        14 DATA SOURCES · 9,400 TICKERS<br/>
+        FROM US, UK, EU &amp; ASIA
+      </div>
+    </div>
+
+    <div class="tools">
+      <div class="tool span6">
+        <div class="row"><span class="num">/ 01</span><span class="mono" style="font-size:10px;color:var(--ink-3);letter-spacing:.1em">RATINGS · LIVE</span></div>
+        <h3>Wall Street consensus, distilled.</h3>
+        <p>We track every published rating from 9,300+ analysts and roll them into one Smart Score — updated the moment a new note hits the wires.</p>
+        <div class="vis">
+          <div class="rrow"><span class="nm">Strong Buy</span><span class="bar"><i style="width:78%"></i></span><span class="pct" style="color:var(--accent)">28</span></div>
+          <div class="rrow"><span class="nm">Buy</span><span class="bar"><i style="width:42%"></i></span><span class="pct">15</span></div>
+          <div class="rrow"><span class="nm">Hold</span><span class="bar"><i class="alt" style="width:22%"></i></span><span class="pct">8</span></div>
+          <div class="rrow"><span class="nm">Sell</span><span class="bar"><i class="alt" style="width:8%;background:var(--accent-2)"></i></span><span class="pct" style="color:var(--accent-2)">3</span></div>
+        </div>
+      </div>
+
+      <div class="tool span6">
+        <div class="row"><span class="num">/ 02</span><span class="mono" style="font-size:10px;color:var(--ink-3);letter-spacing:.1em">SCREENER · NL→QUERY</span></div>
+        <h3>Ask in plain English. Get back a portfolio.</h3>
+        <p>"Show me profitable mid-caps with insider buying and rising revenue." That's a query. We return ranked results in under a second.</p>
+        <div class="vis screener">
+          <div class="sql">
+            <span class="k">FIND</span> stocks <span class="k">WHERE</span><br/>
+            &nbsp;&nbsp;market_cap <span class="s">BETWEEN</span> 2B <span class="s">AND</span> 10B<br/>
+            &nbsp;&nbsp;<span class="s">AND</span> insider_signal = <span class="k">"buying"</span><br/>
+            &nbsp;&nbsp;<span class="s">AND</span> revenue_yoy &gt; 12%<br/>
+            <span class="k">RANK BY</span> smart_score <span class="k">DESC</span>
+          </div>
+          <div class="results">
+            <div class="sresult"><span class="t">CRWD</span><span>CrowdStrike</span><span>$8.4B</span><span class="g">+24%</span></div>
+            <div class="sresult"><span class="t">DDOG</span><span>Datadog</span><span>$6.1B</span><span class="g">+19%</span></div>
+            <div class="sresult"><span class="t">PANW</span><span>Palo Alto</span><span>$9.8B</span><span class="g">+17%</span></div>
+            <div class="sresult"><span class="t">NET</span><span>Cloudflare</span><span>$4.7B</span><span class="g">+15%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool">
+        <span class="num">/ 03</span>
+        <h3>Portfolio X-ray.</h3>
+        <p>Connect a brokerage and instantly see exposure, concentration risk, and what the data says about each holding.</p>
+        <div class="vis" style="background:var(--paper)">
+          <div class="portbars">
+            <div class="b up" style="height:62%"></div>
+            <div class="b up" style="height:88%"></div>
+            <div class="b up" style="height:74%"></div>
+            <div class="b dn" style="height:42%"></div>
+            <div class="b up" style="height:54%"></div>
+            <div class="b dn" style="height:30%"></div>
+            <div class="b up" style="height:96%"></div>
+            <div class="b up" style="height:68%"></div>
+            <div class="b up" style="height:80%"></div>
+            <div class="b dn" style="height:38%"></div>
+            <div class="b up" style="height:72%"></div>
+            <div class="b up" style="height:60%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool">
+        <span class="num">/ 04</span>
+        <h3>Insiders &amp; funds, watched.</h3>
+        <p>Form 4 filings, 13F changes, and congressional disclosures — surfaced before they ripple into the price.</p>
+        <div class="vis">
+          <div class="feed-item"><span class="t">12m</span><div class="h">Chair · 142,000 shares <b>NVDA</b></div><span class="tag">Buy</span></div>
+          <div class="feed-item"><span class="t">38m</span><div class="h">CFO · disposed 18,400 <b>META</b></div><span class="tag dn">Sell</span></div>
+          <div class="feed-item"><span class="t">2h</span><div class="h">Pelosi · call options <b>VST</b></div><span class="tag">13F</span></div>
+          <div class="feed-item"><span class="t">4h</span><div class="h">Ackman · 1.2M new <b>UBER</b></div><span class="tag">Buy</span></div>
+        </div>
+      </div>
+
+      <div class="tool">
+        <span class="num">/ 05</span>
+        <h3>News, with the noise removed.</h3>
+        <p>Every headline scored on relevance, sentiment, and impact — so a press release doesn't drown out a real downgrade.</p>
+        <div class="vis">
+          <div class="feed-item"><span class="t">3m</span><div class="h">Apple beats on services, in-line iPhone</div><span class="tag">Imp 8</span></div>
+          <div class="feed-item"><span class="t">22m</span><div class="h">Fed minutes hint at slower QT pace</div><span class="tag">Macro</span></div>
+          <div class="feed-item"><span class="t">1h</span><div class="h">Costco November comps top estimates</div><span class="tag">Imp 6</span></div>
+          <div class="feed-item"><span class="t">3h</span><div class="h">UAW reaches tentative deal w/ Ford</div><span class="tag">Sector</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- editorial split: the verdict -->
+<section class="s" style="background:var(--bg-2)">
+  <div class="wrap">
+    <div class="split">
+      <div class="copy">
+        <div class="sec-kicker">02 — The verdict</div>
+        <h3>One number.<br/><em>One conviction.</em><br/>Hours of research, saved.</h3>
+        <p>Most platforms drown you in dashboards. Ledgerline does the synthesis itself — weighing analyst track record, insider behaviour, fund flows, technicals, and fundamentals — then hands you a single, defensible verdict.</p>
+        <p>Click any verdict and you get the entire paper trail: every rating, every transcript line, every chart that contributed. Confidence with receipts.</p>
+        <div class="quote-block">"It's the first tool I've found that actually shortens my research, instead of just relocating it."</div>
+        <div class="qattr">— Helena Maro · Allocator Magazine, Spring '26</div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="verdict-card-head">
+            <div>
+              <div class="vch-l">Verdict · Costco Wholesale (COST)</div>
+              <div style="font-family:'Instrument Serif',serif;font-size:48px;line-height:1">Strong Buy</div>
+            </div>
+            <div class="vch-r">
+              <div class="vch-l">Confidence</div>
+              <div class="pct">87%</div>
+            </div>
+          </div>
+          <div class="verdict-evidence">
+            <div class="ev">
+              <div class="l">Analyst Consensus</div>
+              <div class="v" style="color:var(--accent)">22 Buy · 4 Hold · 0 Sell</div>
+              <div class="d">Avg PT $1,084 · upside +12.4%</div>
+            </div>
+            <div class="ev">
+              <div class="l">Insider Activity</div>
+              <div class="v">Net buying, 30d</div>
+              <div class="d">3 buys · 1 sell · ratio +2.1×</div>
+            </div>
+            <div class="ev">
+              <div class="l">Hedge Fund Trend</div>
+              <div class="v" style="color:var(--accent)">Increasing</div>
+              <div class="d">+1.4% positions, 84 filers</div>
+            </div>
+            <div class="ev">
+              <div class="l">Fundamentals</div>
+              <div class="v">Outperform</div>
+              <div class="d">Rev +9.1% YoY · margin steady</div>
+            </div>
+            <div class="ev">
+              <div class="l">News Sentiment, 7d</div>
+              <div class="v" style="color:var(--accent)">+0.62</div>
+              <div class="d">Bull · 14 · Bear · 3 · Mixed · 6</div>
+            </div>
+            <div class="ev">
+              <div class="l">Technicals</div>
+              <div class="v">Above 50d &amp; 200d</div>
+              <div class="d">RSI 58 · trend intact</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- experts leaderboard -->
+<section class="s">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="sec-kicker">03 — Follow the right experts</div>
+        <h2>The analysts who are <em>actually</em> right.</h2>
+      </div>
+      <div class="sec-meta">
+        9,318 RANKED EXPERTS<br/>
+        UPDATED EVERY MARKET CLOSE
+      </div>
+    </div>
+
+    <div class="card" style="overflow:hidden">
+      <div class="leader-head">
+        <div>Rank</div>
+        <div></div>
+        <div>Analyst</div>
+        <div>Success</div>
+        <div>Avg Return</div>
+        <div>Stars</div>
+      </div>
+      <div class="leader-row">
+        <div class="lr-rank top">01</div>
+        <div class="lr-pic">MR</div>
+        <div class="lr-name"><div class="n">Maya Rosenthal</div><div class="f">Goldman Sachs · Software</div></div>
+        <div class="lr-num g">78%</div>
+        <div class="lr-num g">+24.6%</div>
+        <div class="lr-stars">★★★★★</div>
+      </div>
+      <div class="leader-row">
+        <div class="lr-rank top">02</div>
+        <div class="lr-pic">DK</div>
+        <div class="lr-name"><div class="n">Daniel Kowalczyk</div><div class="f">Morgan Stanley · Industrials</div></div>
+        <div class="lr-num g">74%</div>
+        <div class="lr-num g">+19.8%</div>
+        <div class="lr-stars">★★★★★</div>
+      </div>
+      <div class="leader-row">
+        <div class="lr-rank top">03</div>
+        <div class="lr-pic">PA</div>
+        <div class="lr-name"><div class="n">Priya Anand</div><div class="f">JP Morgan · Healthcare</div></div>
+        <div class="lr-num g">71%</div>
+        <div class="lr-num g">+17.2%</div>
+        <div class="lr-stars">★★★★½</div>
+      </div>
+      <div class="leader-row">
+        <div class="lr-rank">04</div>
+        <div class="lr-pic">JV</div>
+        <div class="lr-name"><div class="n">Javier Vega</div><div class="f">Wells Fargo · Energy</div></div>
+        <div class="lr-num g">68%</div>
+        <div class="lr-num g">+15.4%</div>
+        <div class="lr-stars">★★★★½</div>
+      </div>
+      <div class="leader-row">
+        <div class="lr-rank">05</div>
+        <div class="lr-pic">SO</div>
+        <div class="lr-name"><div class="n">Sophie Ó Briain</div><div class="f">Citi · Consumer</div></div>
+        <div class="lr-num g">66%</div>
+        <div class="lr-num g">+13.9%</div>
+        <div class="lr-stars">★★★★</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- numbers band (dark) -->
+<section class="band">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="sec-kicker">04 — Eight years of receipts</div>
+        <h2>Built on data <em>nobody else</em> bothers to keep.</h2>
+      </div>
+      <div class="sec-meta">VERIFIED &amp; AUDITED · APRIL 2026</div>
+    </div>
+
+    <div class="band-stats">
+      <div class="stat">
+        <div class="k">Tracked analysts</div>
+        <div class="n">9,318</div>
+        <div class="d">Every published rating, scored against realised returns.</div>
+      </div>
+      <div class="stat">
+        <div class="k">Insider filings parsed</div>
+        <div class="n"><em>184k</em></div>
+        <div class="d">Form 3 / 4 / 5 normalised across US listed equities.</div>
+      </div>
+      <div class="stat">
+        <div class="k">Top-decile hit rate</div>
+        <div class="n">71%</div>
+        <div class="d">The realised accuracy of our highest-conviction calls.</div>
+      </div>
+      <div class="stat">
+        <div class="k">Excess return</div>
+        <div class="n"><em>+11.4%</em></div>
+        <div class="d">Smart-Score basket vs. S&amp;P 500 over the trailing 12 months.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- how it works -->
+<section class="s">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="sec-kicker">05 — How it works</div>
+        <h2>Three minutes from sign-up to <em>your first verdict.</em></h2>
+      </div>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="num">i.</div>
+        <h4>Add what you own.</h4>
+        <p>Connect a brokerage in a click, or paste a ticker list. We index everything in your portfolio and watchlist instantly.</p>
+      </div>
+      <div class="step">
+        <div class="num">ii.</div>
+        <h4>Read the verdict.</h4>
+        <p>Open any stock and see the Ledgerline verdict — the receipt of every signal that informed it, ranked by weight.</p>
+      </div>
+      <div class="step">
+        <div class="num">iii.</div>
+        <h4>Set your alerts.</h4>
+        <p>Tell us when to interrupt your day: rating changes, insider buys, earnings surprises. Quiet by default, sharp when it counts.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- testimonials -->
+<section class="s" style="background:var(--bg-2)">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="sec-kicker">06 — Members</div>
+        <h2>Used by 480,000 self-directed investors who'd rather <em>think</em> than scroll.</h2>
+      </div>
+    </div>
+    <div class="tst">
+      <div class="tst-card">
+        <blockquote>"I cancelled three other research tools the week I signed up. Ledgerline isn't more data — it's the synthesis I was paying analysts to do."</blockquote>
+        <div class="a"><div class="av">JM</div><div><div class="nm">Jonas Mehring</div><div class="ro">Ex-Hedge Fund PM · Hamburg</div></div></div>
+      </div>
+      <div class="tst-card">
+        <blockquote>"My win rate went from coin-flip to 64% over six months. Reading the receipts is what changed how I size positions."</blockquote>
+        <div class="a"><div class="av">RC</div><div><div class="nm">Renata Costa</div><div class="ro">Self-directed investor · São Paulo</div></div></div>
+      </div>
+      <div class="tst-card">
+        <blockquote>"The expert leaderboard is the part that earned my subscription. I know exactly which voices to weight, and which to ignore."</blockquote>
+        <div class="a"><div class="av">DT</div><div><div class="nm">David Tuominen</div><div class="ro">RIA · Helsinki</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- pricing -->
+<section class="s">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="sec-kicker">07 — Plans</div>
+        <h2>Honest pricing. Cancel <em>any time</em>, in two clicks.</h2>
+      </div>
+      <div class="sec-meta">14-DAY FREE TRIAL · NO CARD</div>
+    </div>
+    <div class="price-grid">
+      <div class="plan">
+        <h4>Starter</h4>
+        <div class="pp"><span class="a">$0</span><span class="u">/ free, forever</span></div>
+        <div class="desc">For investors who want a research feel before they commit.</div>
+        <ul>
+          <li>Smart Score on 9,400 tickers</li>
+          <li>Basic analyst consensus</li>
+          <li>Watchlist of up to 10 stocks</li>
+          <li>Weekly market brief</li>
+        </ul>
+        <a class="btn btn-ghost">Open free account</a>
+      </div>
+      <div class="plan featured">
+        <span class="pf-tag">Most popular</span>
+        <h4>Premium</h4>
+        <div class="pp"><span class="a">$28</span><span class="u">/ month</span></div>
+        <div class="desc">Everything a serious self-directed investor needs.</div>
+        <ul>
+          <li>Full verdicts with receipts</li>
+          <li>Insider, hedge-fund &amp; congressional trades</li>
+          <li>Plain-English screener</li>
+          <li>Portfolio X-ray, brokerage sync</li>
+          <li>Real-time alerts</li>
+        </ul>
+        <a class="btn btn-solid">Start 14-day trial <span class="btn-arrow">→</span></a>
+      </div>
+      <div class="plan">
+        <h4>Ultimate</h4>
+        <div class="pp"><span class="a">$74</span><span class="u">/ month</span></div>
+        <div class="desc">For active traders and small advisory practices.</div>
+        <ul>
+          <li>Everything in Premium</li>
+          <li>Pre-market &amp; intraday signals</li>
+          <li>Options flow &amp; dark pools</li>
+          <li>5 client portfolios</li>
+          <li>Concierge research analyst</li>
+        </ul>
+        <a class="btn btn-ghost">Compare plans</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- faq -->
+<section class="s" style="background:var(--bg-2)">
+  <div class="wrap">
+    <div class="faq">
+      <div>
+        <div class="sec-kicker">08 — Questions</div>
+        <h2 style="font-family:'Instrument Serif',serif;font-size:60px;line-height:1;letter-spacing:-.02em;font-weight:400;max-width:380px">Things people ask <em style="font-style:italic;color:var(--accent)">before</em> they sign up.</h2>
+      </div>
+      <div class="faq-list">
+        <details class="faq-item" open>
+          <summary>Is Ledgerline a brokerage?</summary>
+          <p>No. We're a research and analysis platform. You hold your positions wherever you already do — we connect read-only to give you a clearer picture of what you own.</p>
+        </details>
+        <details class="faq-item">
+          <summary>How do you score the analysts?</summary>
+          <p>Every published rating is timestamped and tracked. We measure the realised one-year return against the analyst's call (price target, direction, sector benchmark) and update the score after each market close.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Where does the data come from?</summary>
+          <p>Fourteen primary sources: SEC EDGAR filings, exchange feeds (NYSE, Nasdaq, LSE, Euronext), public analyst notes, transcripts, and Form 4 / 13F filings. We cite every claim down to its source row.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Do you give buy &amp; sell recommendations?</summary>
+          <p>We synthesise consensus and surface evidence — but we never give advice. The verdict is a clear summary of what professionals are doing, not a recommendation for you.</p>
+        </details>
+        <details class="faq-item">
+          <summary>What happens after the free trial?</summary>
+          <p>Nothing automatic. We email you two days before it ends and ask whether you'd like to continue. No card up front, no surprise charges.</p>
+        </details>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- final cta -->
+<section class="final">
+  <div class="wrap">
+    <h2>Stop guessing.<br/>Start <em>deciding</em>.</h2>
+    <p>Join 480,000 investors who replaced ten browser tabs with one calm, opinionated research desk.</p>
+    <div class="hero-actions">
+      <a class="btn btn-solid">Start free for 14 days <span class="btn-arrow">→</span></a>
+      <a class="btn btn-ghost">Talk to a human</a>
+    </div>
+  </div>
+</section>
+
+<!-- footer -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="brand" style="font-size:0">
+          <span class="foot-brand-name">Ledgerline</span>
+        </div>
+        <p class="foot-tag">A research desk for self-directed investors. Built in New York &amp; Tel Aviv. Independent, paid by members.</p>
+      </div>
+      <div class="foot-col">
+        <h5>Product</h5>
+        <ul>
+          <li><a>Verdicts</a></li>
+          <li><a>Screener</a></li>
+          <li><a>Portfolio</a></li>
+          <li><a>Alerts</a></li>
+          <li><a>API</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h5>Markets</h5>
+        <ul>
+          <li><a>US Equities</a></li>
+          <li><a>Europe</a></li>
+          <li><a>Asia</a></li>
+          <li><a>ETFs</a></li>
+          <li><a>Crypto</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h5>Company</h5>
+        <ul>
+          <li><a>About</a></li>
+          <li><a>Methodology</a></li>
+          <li><a>Newsroom</a></li>
+          <li><a>Careers</a></li>
+          <li><a>Contact</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h5>Legal</h5>
+        <ul>
+          <li><a>Terms</a></li>
+          <li><a>Privacy</a></li>
+          <li><a>Disclosures</a></li>
+          <li><a>Data sources</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-base">
+      <span>© 2026 Ledgerline Research Inc.</span>
+      <span>Not investment advice. All data licensed and time-stamped. Past performance is not a guarantee of future results.</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
